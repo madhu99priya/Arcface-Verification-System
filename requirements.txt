@@ -1,0 +1,7 @@
+torch
+torchvision
+facenet-pytorch
+onnxruntime
+numpy
+faiss-cpu
+opencv-python
