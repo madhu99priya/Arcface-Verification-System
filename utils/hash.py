@@ -20,7 +20,9 @@ class NeuralHasher:
         input_tensor = self.preprocess(image_path)
         input_name = self.session.get_inputs()[0].name
         output = self.session.run(None, {input_name: input_tensor})[0].flatten()
+        print(output)
         bits = np.array([1 if v >= 0 else 0 for v in output], dtype=np.uint8)
+        print(bits)
         return bits  # shape: (128,)
 
     def hamming_distance(self, h1: np.ndarray, h2: np.ndarray) -> int:
@@ -31,8 +33,8 @@ class NeuralHasher:
 
 if __name__ == "__main__":
     model_path = "models/model.onnx"
-    image_1 = "data/probe/image4.jpg"
-    image_2 = "data/probe/image5.jpg"
+    image_1 = "data/probe/image1.jpg"
+    image_2 = "data/probe/image2.jpg"
 
     hasher = NeuralHasher(model_path)
     hash1 = hasher.get_hash(image_1)

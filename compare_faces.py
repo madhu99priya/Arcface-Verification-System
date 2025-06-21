@@ -21,7 +21,9 @@ def get_face_embedding(image_path):
     # Get embedding
     with torch.no_grad():
         embedding = model(face_tensor.unsqueeze(0))  # shape: (1, 512)
+        #print(embedding.shape)
         embedding = embedding[0] / embedding[0].norm()  # L2-normalize
+        #print(embedding.shape)
 
     return embedding.numpy()
 
@@ -30,8 +32,8 @@ def cosine_similarity(a, b):
 
 if __name__ == "__main__":
     # Replace these with your actual images
-    image1 = "data/probe/image4.jpg"
-    image2 = "data/probe/image5.jpg"
+    image1 = "data/probe/image1.jpg"
+    image2 = "data/probe/image4.jpg"
 
     try:
         emb1 = get_face_embedding(image1)
