@@ -43,9 +43,9 @@ def fit_pca_on_dataset(embeddings_np):
     pca.fit(embeddings_np)
     return pca
 
-def simulate_pca():
-    dummy_data = np.random.randn(1000, 512)
-    return fit_pca_on_dataset(dummy_data)
+# def simulate_pca():
+#     dummy_data = np.random.randn(1000, 512)
+#     return fit_pca_on_dataset(dummy_data)
 
 # ==== Step 4: Load NeuralHash Hyperplanes ====
 def load_hyperplanes(dat_path):
@@ -232,8 +232,8 @@ def compare_images(img1_path, img2_path, dat_file):
 
 if __name__ == "__main__":
     # Paths to the two images you want to compare
-    image1_path = "./data/probe/image4.jpg"
-    image2_path = "./data/probe/image5.jpg"
+    image1_path = "./data/probe/image11.jpg"
+    image2_path = "./data/probe/image12.jpg"
     
     # Path to NeuralHash dat file -> getting hyperplanes
     dat_file = "./models/neuralhash_128x96_seed1.dat"
