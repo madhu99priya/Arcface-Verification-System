@@ -5,6 +5,7 @@ from facenet_pytorch import InceptionResnetV1, MTCNN
 from sklearn.decomposition import PCA
 from sklearn.metrics.pairwise import cosine_similarity
 import os
+import pickle
 
 # ==== Load Models ====
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -42,7 +43,6 @@ def fit_pca_on_dataset(embeddings_np):
     pca.fit(embeddings_np)
     return pca
 
-# For demo, you can simulate a PCA fit with random embeddings
 def simulate_pca():
     dummy_data = np.random.randn(1000, 512)
     return fit_pca_on_dataset(dummy_data)
@@ -55,8 +55,8 @@ def load_hyperplanes(dat_path):
     with open(dat_path, "rb") as f:
         data = f.read()
     
-    # Skip header if needed (e.g., 128 bytes)
-    header_size = 128  # try 0 if unsure
+    # Skip header (e.g., 128 bytes)
+    header_size = 128  
     raw = data[header_size:]  # skip header if it's present
     
     hyperplanes = np.frombuffer(raw, dtype=np.float32).reshape(128, 96)
@@ -124,6 +124,13 @@ def process_image(img_path, pca, hyperplanes):
             'image_path': img_path
         }
 
+def load_trained_pca(pca_path='./models/trained_pca_96.pkl'):
+    """Load the trained PCA model from pickle file"""
+    with open(pca_path, 'rb') as f:
+        pca_data = pickle.load(f)
+        return pca_data['pca_model']
+
+
 def compare_images(img1_path, img2_path, dat_file):
     """Compare two images using multiple similarity metrics"""
     print(f"Comparing images:")
@@ -132,9 +139,9 @@ def compare_images(img1_path, img2_path, dat_file):
     print("-" * 60)
     
     # Load PCA and hyperplanes
-    pca = simulate_pca()  # Replace with actual trained PCA if available
+    pca = load_trained_pca()  
     hyperplanes = load_hyperplanes(dat_file)
-    
+        
     # Process both images
     result1 = process_image(img1_path, pca, hyperplanes)
     result2 = process_image(img2_path, pca, hyperplanes)
@@ -228,7 +235,7 @@ if __name__ == "__main__":
     image1_path = "./data/probe/image4.jpg"
     image2_path = "./data/probe/image5.jpg"
     
-    # Path to NeuralHash hyperplanes
+    # Path to NeuralHash dat file -> getting hyperplanes
     dat_file = "./models/neuralhash_128x96_seed1.dat"
     
     # Compare the two images
@@ -245,7 +252,7 @@ if __name__ == "__main__":
     print("="*60)
     
     try:
-        pca = simulate_pca()
+        pca = load_trained_pca()  # Use same helper function
         hyperplanes = load_hyperplanes(dat_file)
         
         result1 = process_image(image1_path, pca, hyperplanes)

@@ -32,7 +32,7 @@ def cosine_similarity(a, b):
 
 if __name__ == "__main__":
     # Replace these with your actual images
-    image1 = "data/probe/image1.jpg"
+    image1 = "data/probe/image5.jpg"
     image2 = "data/probe/image4.jpg"
 
     try:
