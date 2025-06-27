@@ -5,3 +5,6 @@ onnxruntime
 numpy
 faiss-cpu
 opencv-python
+scikit-learn
+matplotlib
+tqdm
