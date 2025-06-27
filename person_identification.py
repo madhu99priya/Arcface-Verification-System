@@ -71,7 +71,7 @@ def identify_person_by_matches(probe_image_path, database_dir, dat_file, similar
 if __name__ == "__main__":
     
     # Inputs
-    probe_image_path = "./data/probe/image14.jpg"
+    probe_image_path = "./data/probe/image15.jpg"
     database_dir = "./data/dataset"
     dat_file = "./models/neuralhash_128x96_seed1.dat"
     similarity_threshold = 0.75
