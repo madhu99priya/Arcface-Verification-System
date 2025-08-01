@@ -39,13 +39,9 @@ def get_embedding(aligned_face_tensor):
 
 # ==== Step 3: Load PCA (or train if first time) ====
 def fit_pca_on_dataset(embeddings_np):
-    pca = PCA(n_components=96)
+    pca = PCA(n_components=128)
     pca.fit(embeddings_np)
     return pca
-
-# def simulate_pca():
-#     dummy_data = np.random.randn(1000, 512)
-#     return fit_pca_on_dataset(dummy_data)
 
 # ==== Step 4: Load NeuralHash Hyperplanes ====
 def load_hyperplanes(dat_path):
@@ -54,18 +50,14 @@ def load_hyperplanes(dat_path):
     
     with open(dat_path, "rb") as f:
         data = f.read()
-    
-    # Skip header (e.g., 128 bytes)
-    header_size = 128  
-    raw = data[header_size:]  # skip header if it's present
 
-    hyperplanes = np.frombuffer(raw, dtype=np.float32).reshape(128, 96)
+    hyperplanes = np.frombuffer(data, dtype=np.float32).reshape(128, 128)
     return hyperplanes
 
 # ==== Step 5: Compute NeuralHash ====
-def compute_neuralhash(embedding_96, hyperplanes):
-    embedding_96 = embedding_96 / np.linalg.norm(embedding_96)
-    bits = (np.dot(hyperplanes, embedding_96) > 0).astype(np.uint8)
+def compute_neuralhash(embedding_128, hyperplanes):
+    embedding_128 = embedding_128 / np.linalg.norm(embedding_128)
+    bits = (np.dot(hyperplanes, embedding_128) > 0).astype(np.uint8)
     return bits
 
 def bits_to_hex(bits):
@@ -73,46 +65,33 @@ def bits_to_hex(bits):
 
 # ==== Similarity Metrics ====
 def hamming_distance(hash1, hash2):
-    """Calculate Hamming distance between two binary hash arrays"""
     return np.sum(hash1 != hash2)
 
 def hamming_similarity(hash1, hash2):
-    """Calculate Hamming similarity (0-1, where 1 is identical)"""
     return 1 - (hamming_distance(hash1, hash2) / len(hash1))
 
 def euclidean_distance(emb1, emb2):
-    """Calculate Euclidean distance between embeddings"""
     return np.linalg.norm(emb1 - emb2)
 
 def cosine_similarity_score(emb1, emb2):
-    """Calculate cosine similarity between embeddings"""
     return cosine_similarity([emb1], [emb2])[0][0]
 
 def manhattan_distance(emb1, emb2):
-    """Calculate Manhattan (L1) distance between embeddings"""
     return np.sum(np.abs(emb1 - emb2))
 
 # ==== Complete Processing Pipeline ====
 def process_image(img_path, pca, hyperplanes):
-    """Process a single image and return all relevant data"""
     try:
-        # 1. Load and align face
         face_tensor = load_and_align_image(img_path)
-        
-        # 2. Get ArcFace embedding (512-d)
         emb_512 = get_embedding(face_tensor)
-        
-        # 3. Reduce to 96-d with PCA
-        emb_96 = pca.transform([emb_512])[0]
-        
-        # 4. Compute hash
-        hash_bits = compute_neuralhash(emb_96, hyperplanes)
+        emb_128 = pca.transform([emb_512])[0]
+        hash_bits = compute_neuralhash(emb_128, hyperplanes)
         neural_hash = bits_to_hex(hash_bits)
         
         return {
             'success': True,
             'embedding_512': emb_512,
-            'embedding_96': emb_96,
+            'embedding_128': emb_128,
             'hash_bits': hash_bits,
             'neural_hash': neural_hash,
             'image_path': img_path
@@ -124,78 +103,63 @@ def process_image(img_path, pca, hyperplanes):
             'image_path': img_path
         }
 
-def load_trained_pca(pca_path='./models/trained_pca_96.pkl'):
-    """Load the trained PCA model from pickle file"""
+def load_trained_pca(pca_path='./models/pca_512_to_128.pkl'):
     with open(pca_path, 'rb') as f:
         pca_data = pickle.load(f)
         return pca_data['pca_model']
 
-
 def compare_images(img1_path, img2_path, dat_file):
-    """Compare two images using multiple similarity metrics"""
     print(f"Comparing images:")
     print(f"  Image 1: {img1_path}")
     print(f"  Image 2: {img2_path}")
     print("-" * 60)
     
-    # Load PCA and hyperplanes
-    pca = load_trained_pca()  
+    pca = load_trained_pca()
     hyperplanes = load_hyperplanes(dat_file)
         
-    # Process both images
     result1 = process_image(img1_path, pca, hyperplanes)
     result2 = process_image(img2_path, pca, hyperplanes)
     
-    # Check if both images were processed successfully
     if not result1['success']:
         print(f"Error processing image 1: {result1['error']}")
         return
-    
     if not result2['success']:
         print(f"Error processing image 2: {result2['error']}")
         return
     
-    # Display individual hashes
     print("Neural Hashes:")
     print(f"  Image 1: {result1['neural_hash']}")
     print(f"  Image 2: {result2['neural_hash']}")
     print()
     
-    # Calculate all similarity metrics
     print("Similarity Metrics:")
     print("-" * 30)
     
-    # 1. Hamming distance/similarity on hash bits
     hamming_dist = hamming_distance(result1['hash_bits'], result2['hash_bits'])
     hamming_sim = hamming_similarity(result1['hash_bits'], result2['hash_bits'])
     print(f"Hamming Distance:     {hamming_dist}/128 bits")
     print(f"Hamming Similarity:   {hamming_sim:.4f} (1.0 = identical)")
     
-    # 2. Cosine similarity on 512-d embeddings
     cos_sim_512 = cosine_similarity_score(result1['embedding_512'], result2['embedding_512'])
-    print(f"Cosine Similarity (512-d): {cos_sim_512:.4f} (1.0 = identical)")
+    print(f"Cosine Similarity (512-d): {cos_sim_512:.4f}")
     
-    # 3. Cosine similarity on 96-d embeddings
-    cos_sim_96 = cosine_similarity_score(result1['embedding_96'], result2['embedding_96'])
-    print(f"Cosine Similarity (96-d):  {cos_sim_96:.4f} (1.0 = identical)")
+    cos_sim_128 = cosine_similarity_score(result1['embedding_128'], result2['embedding_128'])
+    print(f"Cosine Similarity (128-d): {cos_sim_128:.4f}")
     
-    # 4. Euclidean distance on embeddings
     eucl_dist_512 = euclidean_distance(result1['embedding_512'], result2['embedding_512'])
-    eucl_dist_96 = euclidean_distance(result1['embedding_96'], result2['embedding_96'])
-    print(f"Euclidean Distance (512-d): {eucl_dist_512:.4f} (0.0 = identical)")
-    print(f"Euclidean Distance (96-d):  {eucl_dist_96:.4f} (0.0 = identical)")
+    eucl_dist_128 = euclidean_distance(result1['embedding_128'], result2['embedding_128'])
+    print(f"Euclidean Distance (512-d): {eucl_dist_512:.4f}")
+    print(f"Euclidean Distance (128-d): {eucl_dist_128:.4f}")
     
-    # 5. Manhattan distance on embeddings
     manhattan_dist_512 = manhattan_distance(result1['embedding_512'], result2['embedding_512'])
-    manhattan_dist_96 = manhattan_distance(result1['embedding_96'], result2['embedding_96'])
-    print(f"Manhattan Distance (512-d): {manhattan_dist_512:.4f} (0.0 = identical)")
-    print(f"Manhattan Distance (96-d):  {manhattan_dist_96:.4f} (0.0 = identical)")
+    manhattan_dist_128 = manhattan_distance(result1['embedding_128'], result2['embedding_128'])
+    print(f"Manhattan Distance (512-d): {manhattan_dist_512:.4f}")
+    print(f"Manhattan Distance (128-d): {manhattan_dist_128:.4f}")
     
     print()
     print("Interpretation:")
     print("-" * 15)
     
-    # Provide interpretation based on typical thresholds
     if hamming_sim > 0.85:
         hash_verdict = "Very Similar"
     elif hamming_sim > 0.75:
@@ -221,38 +185,32 @@ def compare_images(img1_path, img2_path, dat_file):
         'hamming_distance': hamming_dist,
         'hamming_similarity': hamming_sim,
         'cosine_similarity_512': cos_sim_512,
-        'cosine_similarity_96': cos_sim_96,
+        'cosine_similarity_128': cos_sim_128,
         'euclidean_distance_512': eucl_dist_512,
-        'euclidean_distance_96': eucl_dist_96,
+        'euclidean_distance_128': eucl_dist_128,
         'manhattan_distance_512': manhattan_dist_512,
-        'manhattan_distance_96': manhattan_dist_96,
+        'manhattan_distance_128': manhattan_dist_128,
         'hash_verdict': hash_verdict,
         'embedding_verdict': embedding_verdict
     }
 
 if __name__ == "__main__":
-    # Paths to the two images you want to compare
     image1_path = "./data/probe/image11.jpg"
     image2_path = "./data/probe/image12.jpg"
+    dat_file = "./models/neuralhash_128x128_seed1.dat"
     
-    # Path to NeuralHash dat file -> getting hyperplanes
-    dat_file = "./models/neuralhash_128x96_seed1.dat"
-    
-    # Compare the two images
     try:
         results = compare_images(image1_path, image2_path, dat_file)
         print(f"\nComparison completed successfully!")
-        
     except Exception as e:
         print(f"Error during comparison: {e}")
         
-    # Optional: You can also process individual images
     print("\n" + "="*60)
     print("Individual Image Processing:")
     print("="*60)
     
     try:
-        pca = load_trained_pca()  # Use same helper function
+        pca = load_trained_pca()
         hyperplanes = load_hyperplanes(dat_file)
         
         result1 = process_image(image1_path, pca, hyperplanes)
