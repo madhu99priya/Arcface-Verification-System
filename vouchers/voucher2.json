@@ -1,0 +1,14 @@
+{
+  "blinded_hash": "c580c152698b18ae25a6c6d1a5bb1c95d0085d22d844abe046eca651b80f7e81",
+  "header": "180ef6df367a2deab71cab2036943bc56c7d76302ffe567e60f3da33c78ce398",
+  "payload": {
+    "share": {
+      "x": 1,
+      "y": "3d8437a2b56e469095d6029c80a550ba"
+    },
+    "inner_encrypted": {
+      "iv": "7af054ef72b54e1c0bc0fc8ef37acce7",
+      "ciphertext": "dc262d541064a07aaab76972ec4a344e6d559ce5b822b66a5ee621d903b3ce0bf91b83460efe8c6f770be30ce4837e10b34120ceed5cfc5117d8065c836ad7ddc31da5cd38186b5e12e1dcd4478d475ebc04b3506f028a0a3b7f9f1813e60fc50b3dcd9d3935aaf167a39cf73449e6c5"
+    }
+  }
+}
