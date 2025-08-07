@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Comparison Result</title>
+</head>
+<body>
+    <h2>NeuralHash Comparison Result</h2>
+    <p><strong>Hash 1:</strong> {{ hash1 }}</p>
+    <p><strong>Hash 2:</strong> {{ hash2 }}</p>
+    <p><strong>Hamming Distance:</strong> {{ hamming }}</p>
+
+    {% if hamming <= 15 %}
+        <h3 style="color: green;">✅ Likely Match</h3>
+    {% else %}
+        <h3 style="color: red;">❌ Not a Match</h3>
+    {% endif %}
+
+    <a href="/">Compare Again</a>
+</body>
+</html>
