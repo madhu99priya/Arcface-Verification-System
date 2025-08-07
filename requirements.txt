@@ -1,10 +1,10 @@
+facenet-pytorch
+opencv-python
 torch
 torchvision
-facenet-pytorch
-onnxruntime
 numpy
-faiss-cpu
-opencv-python
 scikit-learn
-matplotlib
-tqdm
+pillow
+cryptography
+pycryptodome
+secretsharing
