@@ -1,5 +1,3 @@
-# main.py
-
 from facenet_pytorch import MTCNN, InceptionResnetV1
 import torch
 import numpy as np
@@ -18,10 +16,11 @@ def load_hyperplanes(path):
     return np.fromfile(path, dtype=np.int8).reshape(-1, 128).astype(np.float32)[:96]
 
 def generate_neuralhash(image_path, pca, hyperplanes):
-    img = Image.open(image_path).convert("RGB")
+    img = Image.open(image_path)
     face = mtcnn(img)
     if face is None:
         raise ValueError("No face detected")
+
     emb_512 = resnet(face.unsqueeze(0)).detach().numpy().squeeze()
     emb_128 = pca.transform([emb_512])[0]
     emb_128 /= np.linalg.norm(emb_128)
