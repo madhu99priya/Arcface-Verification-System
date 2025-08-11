@@ -1,163 +1,65 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>NeuralHash Identification</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-      color: white;
-      text-align: center;
-      margin: 0;
-      padding: 0;
-    }
-
-    h1 {
-      padding: 20px;
-      color: #00eaff;
-      font-size: 2rem;
-    }
-
-    video {
-      margin-top: 20px;
-      border: 4px solid #00eaff;
-      border-radius: 10px;
-      max-width: 90%;
-      box-shadow: 0 0 20px #00eaff;
-    }
-
-    button {
-      margin-top: 20px;
-      padding: 12px 24px;
-      font-size: 18px;
-      font-weight: bold;
-      border: none;
-      background-color: #00eaff;
-      color: #001;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-
-    button:hover {
-      background-color: #01c2cc;
-    }
-
-    #result {
-      margin-top: 30px;
-      font-size: 18px;
-      padding: 16px;
-      border-radius: 10px;
-      max-width: 400px;
-      margin-left: auto;
-      margin-right: auto;
-      transition: all 0.3s ease-in-out;
-    }
-
-    .match {
-      background-color: #1f8a70;
-      animation: flashMatch 1s ease-in-out;
-    }
-
-    .nomatch {
-      background-color: #c0392b;
-      animation: shake 0.5s ease-in-out;
-    }
-
-    @keyframes flashMatch {
-      0% { box-shadow: 0 0 10px #00ffbf; }
-      50% { box-shadow: 0 0 30px #00ffbf; }
-      100% { box-shadow: 0 0 10px #00ffbf; }
-    }
-
-    @keyframes shake {
-      0% { transform: translateX(0); }
-      25% { transform: translateX(-5px); }
-      50% { transform: translateX(5px); }
-      75% { transform: translateX(-5px); }
-      100% { transform: translateX(0); }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Face Verification</title>
+    <style>
+        video, canvas {
+            border: 1px solid #ccc;
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
-  <h1>🔍 Border Control - Face Verification</h1>
+    <h1>ArcFace Verification System</h1>
 
-  <video autoplay playsinline></video><br>
-  <button onclick="captureAndSend()">📸 Capture & Identify</button>
+    <div>
+        <label for="account">Account:</label>
+        <input type="text" id="account" value="test_account">
+    </div>
 
-  <div id="result"></div>
+    <video id="video" width="320" height="240" autoplay></video><br>
+    <button id="captureBtn">Capture & Identify</button>
+    <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
 
-  <!-- Audio buzzer -->
-  <audio id="buzzer" src="{{ url_for('static', filename='buzzer.mp3') }}" preload="auto"></audio>
+    <h3>Result:</h3>
+    <pre id="result"></pre>
 
-  <!-- SweetAlert2 -->
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const resultBox = document.getElementById('result');
 
-  <script>
-    const video = document.querySelector("video");
-    const resultDiv = document.getElementById("result");
-    const buzzer = document.getElementById("buzzer");
+        // Ask for webcam access
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+            })
+            .catch(err => {
+                console.error("Error accessing webcam: ", err);
+                alert("Could not access webcam");
+            });
 
-    navigator.mediaDevices.getUserMedia({ video: true })
-      .then(stream => video.srcObject = stream)
-      .catch(error => console.error("Camera error:", error));
+        document.getElementById('captureBtn').addEventListener('click', async () => {
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    function captureAndSend() {
-      const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0);
-      const imageData = canvas.toDataURL('image/jpeg');
+            const dataUrl = canvas.toDataURL('image/jpeg');
+            const account = document.getElementById('account').value;
 
-      resultDiv.innerHTML = "🕵️‍♀️ Identifying...";
-      resultDiv.className = "";
-
-      fetch("/identify", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ image: imageData })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.status === "match") {
-          buzzer.play().catch(err => console.warn("Buzzer error:", err));
-          resultDiv.innerHTML = `<h2>✅ Match Found</h2>`;
-          data.matches.forEach(m => {
-            resultDiv.innerHTML += `<p>${m.name} (distance: ${m.distance})</p>`;
-          });
-          resultDiv.className = "match";
-
-          Swal.fire({
-            title: "Match Found!",
-            text: data.matches.map(m => `${m.name} (distance: ${m.distance})`).join('\n'),
-            icon: "success",
-            timer: 3000,
-            showConfirmButton: false,
-            backdrop: true,
-            toast: false,
-            position: 'center',
-            width: 360
-          });
-
-        } else if (data.status === "no_match") {
-          resultDiv.innerHTML = "<h2>⚠️ No Match Found</h2>";
-          resultDiv.className = "nomatch";
-        } else {
-          resultDiv.innerHTML = `<h2>⚠️ ${data.message || "Unknown Error"}</h2>`;
-          resultDiv.className = "nomatch";
-        }
-      })
-      .catch(error => {
-        console.error("Error:", error);
-        resultDiv.innerHTML = `<h2>⚠️ Error occurred: ${error}</h2>`;
-        resultDiv.className = "nomatch";
-      });
-    }
-  </script>
+            try {
+                const response = await fetch('/identify', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ image: dataUrl, account })
+                });
+                const data = await response.json();
+                resultBox.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                console.error("Error sending image:", error);
+                resultBox.textContent = "Error: " + error;
+            }
+        });
+    </script>
 </body>
 </html>
