@@ -23,8 +23,8 @@ N = 5          # total shares (not all are sent; we use first K)
 CAPTURE_INTERVAL = 3.0   # seconds between automatic captures
 CAMERA_INDEX = 0         # default webcam
 
-MODEL_PCA_PATH = "./models/pca_512_to_128.pkl"
-MODEL_HYPER_PATH = "./models/neuralhash_128x96_seed1.dat"
+MODEL_PCA_PATH = "../models/pca_512_to_128.pkl"
+MODEL_HYPER_PATH = "../models/neuralhash_128x96_seed1.dat"
 
 BUZZER_WAV = "buzzer.wav" 
 # ------------------
@@ -632,7 +632,7 @@ class ProfessionalBorderControlApp:
         self.last_scan_label.configure(text=self.last_scan_time.strftime("%H:%M:%S"))
 
         # Save temp image for hashing utils
-        tmp_path = "./temp_captures/temp_capture.jpg"
+        tmp_path = "../temp_captures/temp_capture.jpg"
         cv2.imwrite(tmp_path, frame)
         
         self.log_activity("SCAN", f"Capture #{self.scan_count} processed", "INFO")

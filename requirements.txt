@@ -8,3 +8,4 @@ pillow
 cryptography
 pycryptodome
 secretsharing
+flask

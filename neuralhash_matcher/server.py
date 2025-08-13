@@ -11,7 +11,7 @@ SHARES_DIR = './db/accounts'
 THRESHOLD_K = 3
 
 # Load stored hashes (reference database)
-with open('./db/hashes.json', 'r') as f:
+with open('../db/hashes.json', 'r') as f:
     stored = json.load(f)
     stored_hashes = {entry['id']: entry for entry in stored}
 
@@ -29,7 +29,11 @@ DEBUG_IDS = [
     "Madhusha_frame_6.jpg",
     "Madhusha_frame_7.jpg",
     "Madhusha_Madhusha1.jpg",
-    "Madhusha_Madhusha2.jpg"
+    "Madhusha_Madhusha2.jpg",
+    "Visara_Visara1.jpeg",
+    "Visara_Visara2.jpeg",
+    "Visara_Visara3.jpeg",
+    "Visara_Visara4.jpeg"
 ]
 
 @app.route('/submit_share', methods=['POST'])
