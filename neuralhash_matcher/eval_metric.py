@@ -22,7 +22,7 @@ def hamming_similarity(h1, h2):
 
 # ===== 1. Load and Pre-process Data =====
 print("📥 Loading pre-computed embeddings from reduced_dataset.json...")
-with open("reduced_dataset.json", "r") as f:
+with open("reduced_dataset2.json", "r") as f:
     data = json.load(f)
 
 # ===== 2. Collect Genuine and Impostor Pairs =====
@@ -85,7 +85,7 @@ for t in tqdm(thresholds, ncols=100):
     })
 
 # ===== 5. Save Results to CSV =====
-csv_file = os.path.join(output_dir, "evaluation_metrics_detailed_hamming_only.csv")
+csv_file = os.path.join(output_dir, "evaluation_metrics_2_detailed_hamming_only.csv")
 fieldnames = ["Threshold", "TP", "FN", "FP", "TN", "GAR_TPR", "FAR_FPR", "FRR"]
 
 with open(csv_file, "w", newline="") as f:

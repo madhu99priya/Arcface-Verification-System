@@ -1,17 +1,12 @@
-# neuralhash_utils.py
-
 from facenet_pytorch import MTCNN, InceptionResnetV1
 import numpy as np
 import pickle
 from PIL import Image
-from torchvision.transforms import ToPILImage
 
-# Initialize MTCNN to keep all detected faces so we can select the largest
-mtcnn = MTCNN(image_size=160, margin=0, keep_all=True)
+# Initialize MTCNN to keep all detected faces
+mtcnn = MTCNN(image_size=160, margin=0, keep_all=True) 
 resnet = InceptionResnetV1(pretrained='vggface2').eval()
 
-# Helper to convert tensor to a savable PIL Image
-to_pil = ToPILImage()
 
 def load_pca_model(path):
     with open(path, 'rb') as f:
@@ -23,17 +18,13 @@ def load_hyperplanes(path):
     return arr
 
 
-def generate_neuralhash(image_path, pca, hyperplanes, cropped_image_save_path=None):
-    """
-    Generates a NeuralHash for the largest face in an image and optionally saves
-    the cropped face.
-    """
+def generate_neuralhash(image_path, pca, hyperplanes):
     img = Image.open(image_path).convert('RGB')
     
-    # Detect all faces to find their bounding boxes
+    # Detect all faces and get their bounding boxes
     boxes, _ = mtcnn.detect(img)
     
-    # Get a list of face tensors
+    # mtcnn() returns a list of tensors when keep_all=True
     face_tensors = mtcnn(img)
 
     if face_tensors is None:
@@ -41,22 +32,19 @@ def generate_neuralhash(image_path, pca, hyperplanes, cropped_image_save_path=No
 
     # If multiple faces are detected, select the one with the largest bounding box
     if len(face_tensors) > 1:
+        # Calculate the area of each bounding box
         box_areas = [(box[2] - box[0]) * (box[3] - box[1]) for box in boxes]
+        
+        # Find the index of the largest box
         largest_box_index = np.argmax(box_areas)
-        face_tensor = face_tensors[largest_box_index]
+        
+        # Select the corresponding face tensor
+        face = face_tensors[largest_box_index]
     else:
         # If only one face is detected
-        face_tensor = face_tensors[0]
+        face = face_tensors[0]
 
-    # --- New: Save the cropped face if a path is provided ---
-    if cropped_image_save_path:
-        # The tensor values are in the range [-1, 1]. Convert them to [0, 1]
-        # and then to a PIL Image that can be saved.
-        face_image = to_pil((face_tensor + 1) / 2)
-        face_image.save(cropped_image_save_path)
-    # --------------------------------------------------------
-
-    emb_512 = resnet(face_tensor.unsqueeze(0)).detach().cpu().numpy().squeeze()
+    emb_512 = resnet(face.unsqueeze(0)).detach().cpu().numpy().squeeze()
     emb_128 = pca.transform([emb_512])[0]
     emb_128 /= np.linalg.norm(emb_128)
     bits = (np.dot(hyperplanes, emb_128) > 0).astype(np.uint8)

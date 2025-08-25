@@ -10,12 +10,12 @@ output_dir = "..\\evaluation_plots"
 os.makedirs(output_dir, exist_ok=True) 
 
 # --- 1. Load the Metrics Data ---
-csv_file = "../evaluation_results/evaluation_metrics_detailed_hamming_only.csv"
+csv_file = "../evaluation_results/evaluation_metrics_2_detailed_hamming_only.csv"
 try:
     df = pd.read_csv(csv_file)
 except FileNotFoundError:
     print(f"Error: '{csv_file}' not found.")
-    print("Please run the '1_generate_and_analyze_metrics_hamming_only.py' script first.")
+    print("Please run the '1_generate_and_analyze_metrics_2_hamming_only.py' script first.")
     exit()
 
 # --- 2. Find the Equal Error Rate (EER) ---
@@ -52,7 +52,7 @@ plt.ylabel('True Positive Rate (GAR / TPR)')
 plt.title('Receiver Operating Characteristic (ROC) Curve')
 plt.legend(loc="lower right")
 plt.grid(True)
-roc_filename = os.path.join(output_dir, "1_roc_curve.png")
+roc_filename = os.path.join(output_dir, "1_roc_curve3.png")
 plt.savefig(roc_filename)
 print(f"✅ ROC Curve saved to {roc_filename}")
 
@@ -71,7 +71,7 @@ plt.ylabel('False Rejection Rate (FRR)')
 plt.title('Detection Error Trade-off (DET) Curve')
 plt.legend(loc="upper right")
 plt.grid(True, which="both", ls="--")
-det_filename = os.path.join(output_dir, "2_det_curve.png")
+det_filename = os.path.join(output_dir, "2_det_curve3.png")
 plt.savefig(det_filename)
 print(f"✅ DET Curve saved to {det_filename}")
 
@@ -93,7 +93,7 @@ plt.ylabel("Error Rate (Log Scale)")
 plt.title("Error Rate vs. Similarity Threshold")
 plt.legend()
 plt.grid(True, which="both", linestyle='--', linewidth=0.5)
-threshold_filename = os.path.join(output_dir, "3_error_vs_threshold.png")
+threshold_filename = os.path.join(output_dir, "3_error_vs_threshold3.png")
 plt.savefig(threshold_filename)
 print(f"✅ Error Rate vs. Threshold plot saved to {threshold_filename}")
 

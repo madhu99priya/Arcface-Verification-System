@@ -9,12 +9,21 @@ from neuralhash_utils import load_pca_model, load_hyperplanes, generate_neuralha
 pca = load_pca_model('../models/pca_512_to_128.pkl')
 hyperplanes = load_hyperplanes('../models/neuralhash_128x96_seed1.dat')
 
-dataset_path = r"C:\Users\ASUS\Desktop\VGGFace_Dataset"
+# ===== Define Paths =====
+dataset_path = "C:\\Users\\ASUS\\Desktop\\nFilterd"
+# --- New: Define the path for the new folder of cropped images ---
+cropped_faces_path = "C:\\Users\\ASUS\\Desktop\\nFilterd_cropped_faces"
+# Create the main output directory if it doesn't exist
+os.makedirs(cropped_faces_path, exist_ok=True)
+# -----------------------------------------------------------------
+
 reduced_data = {}
 
-def get_embedding(image_path):
-    """Generate NeuralHash (binary string) for an image."""
-    bits = generate_neuralhash(image_path, pca, hyperplanes)
+def get_embedding_and_save_crop(image_path, cropped_save_path):
+    """
+    Generate NeuralHash (binary string) for an image and save the cropped face.
+    """
+    bits = generate_neuralhash(image_path, pca, hyperplanes, cropped_image_save_path=cropped_save_path)
     if bits is None:
         return None
     # Convert to string "010101..."
@@ -25,14 +34,26 @@ folders = [f for f in os.listdir(dataset_path) if os.path.isdir(os.path.join(dat
 
 for folder in tqdm(folders, desc="Processing Folders", ncols=100, unit="folder"):
     folder_path = os.path.join(dataset_path, folder)
+    
+    # --- New: Create a corresponding subfolder in the output directory ---
+    output_folder_path = os.path.join(cropped_faces_path, folder)
+    os.makedirs(output_folder_path, exist_ok=True)
+    # --------------------------------------------------------------------
+
     all_images = sorted(os.listdir(folder_path))
-    selected_images = random.sample(all_images, min(50, len(all_images)))  # pick up to 50 images
+    selected_images = random.sample(all_images, min(50, len(all_images)))
     reduced_data[folder] = []
 
     for img_file in tqdm(selected_images, desc=f"Images in {folder}", leave=False, ncols=100, unit="img"):
         img_path = os.path.join(folder_path, img_file)
+        
+        # --- New: Define the full save path for the cropped image ---
+        cropped_save_path = os.path.join(output_folder_path, img_file)
+        # -------------------------------------------------------------
+        
         try:
-            h = get_embedding(img_path)
+            # Updated function call to save the cropped image
+            h = get_embedding_and_save_crop(img_path, cropped_save_path)
             if h is not None:
                 reduced_data[folder].append({
                     "filename": img_file,
@@ -46,7 +67,7 @@ for folder in tqdm(folders, desc="Processing Folders", ncols=100, unit="folder")
             print(f"❌ Error processing {img_file} in {folder}: {e}")
 
 # ===== Save JSON =====
-with open("reduced_dataset.json", "w") as f:
+with open("reduced_dataset2.json", "w") as f:
     json.dump(reduced_data, f, indent=2)
 
-print("✅ Done! JSON saved as 'reduced_dataset.json'.")
+print(f"✅ Done! JSON saved as 'reduced_dataset.json'. Cropped faces saved in '{cropped_faces_path}'.")
