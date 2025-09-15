@@ -32,9 +32,8 @@ def cosine_similarity(a, b):
 
 if __name__ == "__main__":
     # Replace these with your actual images
-    image1 = "data/probe/image5.jpg"
-    image2 = "data/probe/image4.jpg"
-
+    image1 = "F:\Semester 7\FYP\Arcface-Verification-System\data\dataset\Madhusha\Madhush1.jpg"
+    image2 = "F:\Semester 7\FYP\Arcface-Verification-System\data\dataset\Madhusha\Madhush2.jpg"
     try:
         emb1 = get_face_embedding(image1)
         emb2 = get_face_embedding(image2)

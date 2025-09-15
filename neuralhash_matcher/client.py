@@ -1,6 +1,7 @@
 # client_desktop.py - Professional Version
 import threading
 import time
+from urllib.parse import urlparse
 import cv2
 import requests
 import sys
@@ -22,6 +23,26 @@ K = 3          # threshold (shares to send)
 N = 5          # total shares (not all are sent; we use first K)
 CAPTURE_INTERVAL = 3.0   # seconds between automatic captures
 CAMERA_INDEX = 0         # default webcam
+
+# --- PROXY CONFIG ---
+PROXY_ENABLED = True
+PROXY_HOST = "10.50.225.222"   # change to your proxy IP
+PROXY_PORT = "3128"            # change to your proxy port
+NO_PROXY_HOSTS = ["127.0.0.1", "localhost"]  # skip proxy for local server
+# ---------------------
+
+def get_proxies(url):
+    """Return proxy dict, skipping proxy for localhost"""
+    if not PROXY_ENABLED or not PROXY_HOST or not PROXY_PORT:
+        return {}
+    host = urlparse(url).hostname
+    if host in NO_PROXY_HOSTS:
+        return {}
+    proxy_url = f"http://{PROXY_HOST}:{PROXY_PORT}"
+    return {
+        "http": proxy_url,
+        "https": proxy_url
+    }
 
 MODEL_PCA_PATH = "./models/pca_512_to_128.pkl"
 MODEL_HYPER_PATH = "./models/neuralhash_128x96_seed1.dat"
